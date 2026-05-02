@@ -20,7 +20,7 @@ from django.utils.translation import gettext_lazy as _
 
 from reversion.errors import RevertError
 from reversion.revisions import (_follow_relations_recursive,
-                                 _get_content_type, _get_options)
+                                 _get_content_type, _get_options, _get_object_id_field, is_registered)
 
 
 logger = logging.getLogger(__name__)
@@ -91,7 +91,8 @@ class Revision(models.Model):
                         model = version._model
                         try:
                             # Load the model instance from the same DB as it was saved under.
-                            old_revision.add(model._default_manager.using(version.db).get(pk=version.object_id))
+                            id_field = _get_object_id_field(model)
+                            old_revision.add(model._default_manager.using(version.db).get(**{id_field: version.object_id}))
                         except model.DoesNotExist:
                             pass
                     # Calculate the set of all objects that are in the revision now.
@@ -135,6 +136,12 @@ class VersionQuerySet(models.QuerySet):
         )
 
     def get_for_object(self, obj, model_db=None):
+        if is_registered(obj.__class__):
+            opts = _get_options(obj.__class__)
+            if opts.object_id_field:
+                return self.get_for_object_reference(
+                    obj.__class__, getattr(obj, opts.object_id_field), model_db=model_db
+                )
         return self.get_for_object_reference(obj.__class__, obj.pk, model_db=model_db)
 
     def get_deleted(self, model, model_db=None):

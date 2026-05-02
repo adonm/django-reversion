@@ -216,7 +216,9 @@ class VersionAdmin(admin.ModelAdmin):
                 version.revision.revert(delete=True)
                 # Run the normal changeform view.
                 with self.create_revision(request):
-                    response = self.changeform_view(request, self.get_reversion_changeform_object_id(version), request.path, extra_context)
+                    response = self.changeform_view(
+                        request, self.get_reversion_changeform_object_id(version), request.path, extra_context
+                    )
                     # Decide on whether the keep the changes.
                     if request.method == "POST" and response.status_code == 302:
                         set_comment(_("Reverted to previous version, saved on %(datetime)s") % {

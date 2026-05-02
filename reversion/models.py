@@ -92,7 +92,9 @@ class Revision(models.Model):
                         try:
                             # Load the model instance from the same DB as it was saved under.
                             id_field = _get_object_id_field(model)
-                            old_revision.add(model._default_manager.using(version.db).get(**{id_field: version.object_id}))
+                            old_revision.add(
+                                model._default_manager.using(version.db).get(**{id_field: version.object_id})
+                            )
                         except model.DoesNotExist:
                             pass
                     # Calculate the set of all objects that are in the revision now.

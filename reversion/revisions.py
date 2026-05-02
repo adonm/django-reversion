@@ -195,7 +195,9 @@ def _add_to_revision(obj, using, model_db, explicit):
     )
     # If the version is a duplicate, stop now.
     if version_options.ignore_duplicates and explicit:
-        previous_version = Version.objects.using(using).get_for_object_reference(obj.__class__, object_id, model_db=model_db).first()
+        previous_version = Version.objects.using(using).get_for_object_reference(
+            obj.__class__, object_id, model_db=model_db
+        ).first()
         if previous_version and previous_version._local_field_dict == version._local_field_dict:
             return
     # Store the version.
@@ -229,7 +231,9 @@ def _save_revision(versions, user=None, comment="", meta=(), date_created=None, 
         model: {
             db: frozenset(map(
                 force_str,
-                model._base_manager.using(db).filter(**{f"{_get_object_id_field(model)}__in": pks}).values_list(_get_object_id_field(model), flat=True),
+                model._base_manager.using(db).filter(
+                    **{f"{_get_object_id_field(model)}__in": pks}
+                ).values_list(_get_object_id_field(model), flat=True),
             ))
             for db, pks in db_pks.items()
         }

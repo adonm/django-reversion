@@ -9,7 +9,9 @@ from django.shortcuts import resolve_url
 import reversion
 from reversion.admin import VersionAdmin
 from reversion.models import Version
-from test_app.models import TestModel, TestModelParent, TestModelInline, TestModelGenericInline, TestModelEscapePK, TestModelCustomObjectId
+from test_app.models import (
+    TestModel, TestModelParent, TestModelInline, TestModelGenericInline, TestModelEscapePK, TestModelCustomObjectId
+)
 from test_app.tests.base import TestBase, LoginMixin
 
 

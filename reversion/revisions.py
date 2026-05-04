@@ -169,10 +169,8 @@ def _add_to_revision(obj, using, model_db, explicit):
         return
     version_options = _get_options(obj.__class__)
     content_type = _get_content_type(obj.__class__, using)
-    if version_options.object_id_field:
-        object_id = force_str(getattr(obj, version_options.object_id_field))
-    else:
-        object_id = force_str(obj.pk)
+    object_id = force_str(getattr(obj, version_options.object_id_field))
+    
     version_key = (content_type, object_id)
     # If the obj is already in the revision, stop now.
     db_versions = _current_frame().db_versions
@@ -216,7 +214,7 @@ def add_to_revision(obj, model_db=None):
 
 
 def _get_object_id_field(model):
-    return (_get_options(model).object_id_field or "pk") if is_registered(model) else "pk"
+    return (_get_options(model).object_id_field or "pk")
 
 
 def _save_revision(versions, user=None, comment="", meta=(), date_created=None, using=None):
@@ -388,7 +386,7 @@ def _get_senders_and_signals(model):
 
 
 def register(model=None, fields=None, exclude=(), follow=(), format="json",
-             for_concrete_model=True, ignore_duplicates=False, use_natural_foreign_keys=False, object_id_field=None):
+             for_concrete_model=True, ignore_duplicates=False, use_natural_foreign_keys=False, object_id_field="pk"):
     def register(model):
         # Prevent multiple registration.
         if is_registered(model):

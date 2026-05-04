@@ -140,10 +140,10 @@ class VersionQuerySet(models.QuerySet):
     def get_for_object(self, obj, model_db=None):
         if is_registered(obj.__class__):
             opts = _get_options(obj.__class__)
-            if opts.object_id_field:
-                return self.get_for_object_reference(
-                    obj.__class__, getattr(obj, opts.object_id_field), model_db=model_db
-                )
+            return self.get_for_object_reference(
+                obj.__class__, getattr(obj, opts.object_id_field), model_db=model_db
+            )
+        
         return self.get_for_object_reference(obj.__class__, obj.pk, model_db=model_db)
 
     def get_deleted(self, model, model_db=None):

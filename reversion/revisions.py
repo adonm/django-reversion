@@ -214,7 +214,8 @@ def add_to_revision(obj, model_db=None):
 
 
 def _get_object_id_field(model):
-    return (_get_options(model).object_id_field or "pk")
+    field = _get_options(model).object_id_field
+    return model._meta.pk.name if field == "pk" else field
 
 
 def _save_revision(versions, user=None, comment="", meta=(), date_created=None, using=None):

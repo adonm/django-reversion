@@ -495,6 +495,19 @@ class CustomObjectIdTest(TestBase):
         self.assertEqual(versions[0].field_dict['name'], 'v2')
         self.assertEqual(versions[1].field_dict['name'], 'v1')
 
+    def testGetDeleted(self):
+        with reversion.create_revision():
+            obj = TestModelCustomObjectId.objects.create(slug='custom-id', name='v1')
+        obj.delete()
+        deleted = Version.objects.get_deleted(TestModelCustomObjectId)
+        self.assertEqual(deleted.count(), 1)
+        self.assertEqual(deleted[0].object_id, 'custom-id')
+
+    def testGetDeletedNotIncludingExisting(self):
+        with reversion.create_revision():
+            TestModelCustomObjectId.objects.create(slug='custom-id', name='v1')
+        self.assertEqual(Version.objects.get_deleted(TestModelCustomObjectId).count(), 0)
+
 
 class CustomObjectIdIgnoreDuplicatesTest(TestBase):
 

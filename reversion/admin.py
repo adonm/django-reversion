@@ -200,12 +200,17 @@ class VersionAdmin(admin.ModelAdmin):
                 version.revision.revert(delete=True)
                 # Run the normal changeform view.
                 with self.create_revision(request):
-                    obj = get_object_or_404(
-                        version._model._default_manager.using(version.db),
-                        **{_get_options(version._model).object_id_field: version.object_id},
-                    )
+                    opts = _get_options(version._model)
+                    if opts.object_id_field == version._model._meta.pk.attname:
+                        obj_pk = version.object_id
+                    else:
+                        obj = get_object_or_404(
+                            version._model._default_manager.using(version.db),
+                            **{opts.object_id_field: version.object_id},
+                        )
+                        obj_pk = str(obj.pk)
                     response = self.changeform_view(
-                        request, quote(str(obj.pk)), request.path, extra_context
+                        request, quote(obj_pk), request.path, extra_context
                     )
                     # Decide on whether the keep the changes.
                     if request.method == "POST" and response.status_code == 302:
@@ -311,8 +316,12 @@ class VersionAdmin(admin.ModelAdmin):
             if not self.has_change_permission(request):
                 raise PermissionDenied
 
-        obj = get_object_or_404(self.model, pk=unquote(object_id))
-        reversion_object_id = str(getattr(obj, _get_options(self.model).object_id_field))
+        version_opts = _get_options(self.model)
+        if version_opts.object_id_field == self.model._meta.pk.attname:
+            reversion_object_id = unquote(object_id)
+        else:
+            obj = get_object_or_404(self.model, pk=unquote(object_id))
+            reversion_object_id = str(getattr(obj, version_opts.object_id_field))
         opts = self.model._meta
         action_list = [
             {

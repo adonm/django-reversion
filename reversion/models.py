@@ -19,8 +19,8 @@ from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 
 from reversion.errors import RevertError
-from reversion.revisions import (_follow_relations_recursive,
-                                 _get_content_type, _get_options, _get_object_id_field)
+from reversion.revisions import (_follow_relations_recursive, _get_content_type,
+                                 _get_options)
 
 
 logger = logging.getLogger(__name__)
@@ -91,7 +91,7 @@ class Revision(models.Model):
                         model = version._model
                         try:
                             # Load the model instance from the same DB as it was saved under.
-                            id_field = _get_object_id_field(model)
+                            id_field = _get_options(model).object_id_field
                             old_revision.add(
                                 model._default_manager.using(version.db).get(**{id_field: version.object_id})
                             )
@@ -146,7 +146,7 @@ class VersionQuerySet(models.QuerySet):
     def get_deleted(self, model, model_db=None):
         model_db = model_db or router.db_for_write(model)
         connection = connections[self.db]
-        object_id_field_name = _get_object_id_field(model)
+        object_id_field_name = _get_options(model).object_id_field
         if self.db == model_db and connection.vendor in ("sqlite", "postgresql", "oracle"):
             object_id_cast_target = model._meta.get_field(object_id_field_name)
             if django.VERSION >= (2, 1):

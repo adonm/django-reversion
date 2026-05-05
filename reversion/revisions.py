@@ -212,11 +212,6 @@ def add_to_revision(obj, model_db=None):
         _add_to_revision(obj, db, model_db, True)
 
 
-def _get_object_id_field(model):
-    field = _get_options(model).object_id_field
-    return model._meta.pk.name if field == "pk" else field
-
-
 def _save_revision(versions, user=None, comment="", meta=(), date_created=None, using=None):
     from reversion.models import Revision
     from reversion.models import Version
@@ -230,8 +225,8 @@ def _save_revision(versions, user=None, comment="", meta=(), date_created=None, 
             db: frozenset(map(
                 force_str,
                 model._base_manager.using(db).filter(
-                    **{f"{_get_object_id_field(model)}__in": pks}
-                ).values_list(_get_object_id_field(model), flat=True),
+                    **{f"{_get_options(model).object_id_field}__in": pks}
+                ).values_list(_get_options(model).object_id_field, flat=True),
             ))
             for db, pks in db_pks.items()
         }
@@ -386,7 +381,7 @@ def _get_senders_and_signals(model):
 
 
 def register(model=None, fields=None, exclude=(), follow=(), format="json",
-             for_concrete_model=True, ignore_duplicates=False, use_natural_foreign_keys=False, object_id_field="pk"):
+             for_concrete_model=True, ignore_duplicates=False, use_natural_foreign_keys=False, object_id_field=None):
     def register(model):
         # Prevent multiple registration.
         if is_registered(model):
@@ -395,6 +390,12 @@ def register(model=None, fields=None, exclude=(), follow=(), format="json",
             ))
         # Parse fields.
         opts = model._meta.concrete_model._meta
+        if object_id_field is None:
+            id_field = model._meta.pk.attname
+        else:
+            model._meta.get_field(object_id_field)
+            id_field = object_id_field
+
         version_options = _VersionOptions(
             fields=tuple(
                 field_name
@@ -411,7 +412,7 @@ def register(model=None, fields=None, exclude=(), follow=(), format="json",
             for_concrete_model=for_concrete_model,
             ignore_duplicates=ignore_duplicates,
             use_natural_foreign_keys=use_natural_foreign_keys,
-            object_id_field=object_id_field,
+            object_id_field=id_field,
         )
         # Register the model.
         _registered_models[_get_registration_key(model)] = version_options

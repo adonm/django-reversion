@@ -3,6 +3,12 @@
 django-reversion changelog
 ==========================
 
+6.2.0 - 2026-05-12
+------------------
+
+- Added ``object_id_field`` to ``reversion.register()`` (@philippeducasse).
+
+
 6.1.0 - 2025-12-12
 ------------------
 
